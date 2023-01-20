@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include <math.h>
 
+#define BlankValue   0x0000
 #define ZeroValue   0x1551 //0001010101010001 0x1 0x5 0x5 0x1 = 0x1551
 #define OneValue    0x2080 //0000100000000010 0x2 0x0 0x8 0x0 = 0x2080 
 #define TwoValue    0x1e11 //0001000111100001 0x1 0xd 0x1 0x1 = 0x1d11
@@ -19,7 +20,7 @@
 #define SevenValue  0x0111 //0001000100010000 0x0 0x1 0x1 0x1 = 0x0111
 #define EightValue  0x1f51 //0001010111110001 0x1 0xf 0x5 0x1 = 0x1f51
 #define NineValue   0x0b51 //0001010110110000 0x0 0xb 0x5 0x1 = 0x0b51 
-#define ValueArray (int[]){ZeroValue,OneValue,TwoValue,ThreeValue,FourValue,FiveValue,SixValue,SevenValue,EightValue,NineValue}
+#define ValueArray (int[]){ZeroValue,OneValue,TwoValue,ThreeValue,FourValue,FiveValue,SixValue,SevenValue,EightValue,NineValue,BlankValue}
 
 
 
@@ -64,35 +65,33 @@ void LCD_disable(void)
 	LCDCRA = (0<<LCDEN);
 }
 
-void writeChar(int value, int pos) {
+void writeChar(char ch, int pos) {
 
-	int i;
+	int i = 0;
 	if (pos < 0 || pos > 5) {
 		return; // do nothing if pos is outside the supported range
 	}
-	if (value < 0 || value > 9) {
-		//value = ' '; // display a blank for anything outside 0 - 9
-	}
-	
-	if(value==0){
+	if ((int)ch < (0+48) || (int)ch > (9+48)) {
+		i=10;
+	}else if(ch=='0'){
 		i = 0;
-	}else if(value==1){
+	}else if(ch=='1'){
 		i = 1;
-	}else if(value==2){
+	}else if(ch=='2'){
 		i = 2;
-	}else if(value==3){
+	}else if(ch=='3'){
 		i = 3;
-	}else if(value==4){
+	}else if(ch=='4'){
 		i = 4;
-	}else if(value==5){
+	}else if(ch=='5'){
 		i = 5;
-	}else if(value==6){
+	}else if(ch=='6'){
 		i = 6;
-	}else if(value==7){
+	}else if(ch=='7'){
 		i = 7;
-	}else if(value==8){
+	}else if(ch=='8'){
 		i = 8;
-	}else if(value==9){
+	}else if(ch=='9'){
 		i = 9;
 	}
 	if(pos==0){
@@ -137,7 +136,31 @@ void writeChar(int value, int pos) {
 
 
 void writeLong(long i) {
-
+	int iDigits;
+	if(i==0){iDigits=1;}
+	else{iDigits = floor(log10( abs(i) )) + 1;}
+	char Number[iDigits];
+	
+	
+	for(int j=0; j<=iDigits; j++){
+		int i_copy = i;
+		for(int k=iDigits; k>0; k--){
+			i_copy = i_copy/10;
+		} i_copy= i_copy%10;
+		
+			Number[j] = i_copy;
+	}
+	
+	
+	int size = sizeof(Number);
+	for(int j; j<=size; j++){
+		
+		printf("print %c \n",Number[i]);
+		printf("print %d",i);
+		
+		writeChar(Number[i],i);
+	}
+	
 }
 
 bool is_prime(long i) {
@@ -153,8 +176,8 @@ bool is_prime(long i) {
 int main(void)
 {	
 	LCD_Init();
-    writeChar(5,5);
-    is_prime(20);
+    //writeChar('10',4);
+	writeLong(123);
 
 }
 	
