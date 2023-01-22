@@ -2,11 +2,12 @@
  * labb1.cpp
  *
  * Created: 2023-01-18 12:58:25
- * Author : rallo
+ * Author : rallo, Simon
  */ 
 
 #include <avr/io.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <math.h>
 
 #define BlankValue   0x0000
@@ -95,39 +96,39 @@ void writeChar(char ch, int pos) {
 		i = 9;
 	}
 	if(pos==0){
-		LCDDR0 =         (0xF&ValueArray[i])<<0;
-		LCDDR5 =   (((0xF<<4)&ValueArray[i])>>4);
-		LCDDR10 =  (((0xF<<8)&ValueArray[i])>>8);
-		LCDDR15 = (((0xF<<12)&ValueArray[i])>>12);
+		LCDDR0 =  (LCDDR0&0xF0)  |        (0xF&ValueArray[i])<<0;
+		LCDDR5 =  (LCDDR5&0xF0)  |  (((0xF<<4)&ValueArray[i])>>4);
+		LCDDR10 = (LCDDR10&0xF0) |  (((0xF<<8)&ValueArray[i])>>8);
+		LCDDR15 = (LCDDR11&0xF0) | (((0xF<<12)&ValueArray[i])>>12);
 		
 	} else if(pos==1){
-		LCDDR0 =         (0xF&ValueArray[i])<<4;
-		LCDDR5 =   (((0xF<<4)&ValueArray[i])>>0);
-		LCDDR10 =  (((0xF<<8)&ValueArray[i])>>4);
-		LCDDR15 = (((0xF<<12)&ValueArray[i])>>8);
+		LCDDR0 =     (LCDDR0&0x0F)  |       ((0xF&ValueArray[i])<<4);
+		LCDDR5 =     (LCDDR5&0x0F)  |  (((0xF<<4)&ValueArray[i])>>0);
+		LCDDR10 =    (LCDDR10&0x0F) |  (((0xF<<8)&ValueArray[i])>>4);
+		LCDDR15 =    (LCDDR15&0x0F) | (((0xF<<12)&ValueArray[i])>>8);
 	} else if(pos==2){
-		LCDDR1 =         (0xF&ValueArray[i])<<0;
-		LCDDR6 =   (((0xF<<4)&ValueArray[i])>>4);
-		LCDDR11 =  (((0xF<<8)&ValueArray[i])>>8);
-		LCDDR16 = (((0xF<<12)&ValueArray[i])>>12);
+		LCDDR1 =  (LCDDR1&0xF0)  |        (0xF&ValueArray[i])<<0;
+		LCDDR6 =  (LCDDR6&0xF0)  |  (((0xF<<4)&ValueArray[i])>>4);
+		LCDDR11 = (LCDDR11&0xF0) |  (((0xF<<8)&ValueArray[i])>>8);
+		LCDDR16 = (LCDDR16&0xF0) | (((0xF<<12)&ValueArray[i])>>12);
 		
 	} else if(pos==3){
-		LCDDR1 =         (0xF&ValueArray[i])<<4;
-		LCDDR6 =   (((0xF<<4)&ValueArray[i])>>0);
-		LCDDR11 =  (((0xF<<8)&ValueArray[i])>>4);
-		LCDDR16 = (((0xF<<12)&ValueArray[i])>>8);
+		LCDDR1 =     (LCDDR1&0x0F)  |       ((0xF&ValueArray[i])<<4);
+		LCDDR6 =     (LCDDR6&0x0F)  |  (((0xF<<4)&ValueArray[i])>>0);
+		LCDDR11 =    (LCDDR11&0x0F) |  (((0xF<<8)&ValueArray[i])>>4);
+		LCDDR16 =    (LCDDR16&0x0F) | (((0xF<<12)&ValueArray[i])>>8);
 		
 	} else if(pos==4){
-		LCDDR2 =         (0xF&ValueArray[i])<<0;
-		LCDDR7 =   (((0xF<<4)&ValueArray[i])>>4);
-		LCDDR12 =  (((0xF<<8)&ValueArray[i])>>8);
-		LCDDR17 = (((0xF<<12)&ValueArray[i])>>12);
+		LCDDR2 =  (LCDDR2&0xF0)  |        (0xF&ValueArray[i])<<0;
+		LCDDR7 =  (LCDDR7&0xF0)  |  (((0xF<<4)&ValueArray[i])>>4);
+		LCDDR12 = (LCDDR12&0xF0) |  (((0xF<<8)&ValueArray[i])>>8);
+		LCDDR17 = (LCDDR17&0xF0) | (((0xF<<12)&ValueArray[i])>>12);
 		
 	} else if(pos==5){
-		LCDDR2 =         (0xF&ValueArray[i])<<4;
-		LCDDR7 =   (((0xF<<4)&ValueArray[i])>>0);
-		LCDDR12 =  (((0xF<<8)&ValueArray[i])>>4);
-		LCDDR17 = (((0xF<<12)&ValueArray[i])>>8);
+		LCDDR2 =     (LCDDR2&0x0F)  |       ((0xF&ValueArray[i])<<4);
+		LCDDR7 =     (LCDDR7&0x0F)  |  (((0xF<<4)&ValueArray[i])>>0);
+		LCDDR12 =    (LCDDR12&0x0F) |  (((0xF<<8)&ValueArray[i])>>4);
+		LCDDR17 =    (LCDDR17&0x0F) | (((0xF<<12)&ValueArray[i])>>8);
 		
 	}
 	
@@ -138,46 +139,65 @@ void writeChar(char ch, int pos) {
 void writeLong(long i) {
 	int iDigits;
 	if(i==0){iDigits=1;}
+
 	else{iDigits = floor(log10( abs(i) )) + 1;}
-	char Number[iDigits];
+
+	char Number[6];
 	
 	
-	for(int j=0; j<=iDigits; j++){
-		int i_copy = i;
-		for(int k=iDigits; k>0; k--){
+	for(int j=0; j<iDigits; j++){
+		long i_copy = i;
+
+		for(int k=iDigits-j-1; k>0; k--){
 			i_copy = i_copy/10;
+
 		} i_copy= i_copy%10;
-		
-			Number[j] = i_copy;
+
+
+		Number[j] = (char) (i_copy+48);
+		//printf("print %c \n",Number[j]);
 	}
 	
 	
 	int size = sizeof(Number);
-	for(int j; j<=size; j++){
+	for(int j = 0; j<size; j++){
 		
-		printf("print %c \n",Number[i]);
-		printf("print %d",i);
-		
-		writeChar(Number[i],i);
+		writeChar(Number[j],j);
+		//printf("pos: %d",j);
+		//printf(" Value: %c \n",Number[j]);
+		if(j==5){return;}
 	}
 	
 }
 
 bool is_prime(long i) {
-	int k = ceil(sqrt(i));
+	long k = ceil(sqrt(i));
 	for(int j=2; j<=k;j++){
 		if(i%j==0){
-			return true;
+			return false;
+			
 		}
 	}
-	return false;
+	return true;
 }
 
 int main(void)
 {	
 	LCD_Init();
-    //writeChar('10',4);
-	writeLong(123);
+	
+	/*writeChar('9',0);
+	writeChar('6',1);
+	writeChar('6',2);
+	writeChar('6',3);
+	writeChar('6',4);
+	writeChar('6',5);
+	writeChar('7',6);*/
+	
+	
+	writeLong(9999999);
+	
+	
+	
 
 }
 	
