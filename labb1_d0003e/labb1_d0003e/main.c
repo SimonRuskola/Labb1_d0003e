@@ -137,16 +137,16 @@ void writeChar(char ch, int pos) {
 
 
 void writeLong(long i) {
-	int iDigits;
+	int32_t iDigits;
 	if(i==0){iDigits=1;}
 
-	else{iDigits = floor(log10( abs(i) )) + 1;}
+	else{iDigits = floor(log10( i )) + 1;}
 
 	char Number[6];
 	
 	
 	for(int j=0; j<iDigits; j++){
-		long i_copy = i;
+		 volatile int32_t i_copy = i;
 
 		for(int k=iDigits-j-1; k>0; k--){
 			i_copy = i_copy/10;
@@ -158,21 +158,19 @@ void writeLong(long i) {
 		//printf("print %c \n",Number[j]);
 	}
 	
-	
-	int size = sizeof(Number);
-	for(int j = 0; j<size; j++){
+
+	for(int j = 0; j<6; j++){
 		
 		writeChar(Number[j],j);
 		//printf("pos: %d",j);
 		//printf(" Value: %c \n",Number[j]);
-		if(j==5){return;}
 	}
 	
 }
 
+
 bool is_prime(long i) {
-	long k = ceil(sqrt(i));
-	for(int j=2; j<=k;j++){
+	for(int j=2; j<i;j++){
 		if(i%j==0){
 			return false;
 			
@@ -181,20 +179,45 @@ bool is_prime(long i) {
 	return true;
 }
 
+
+void primes(void){
+	for(long n = 2; n<1000; n++){
+		if (is_prime(n)){
+			writeLong(n);
+		}
+		
+	}
+}
+
+void blink(void){
+	TCCR1B = (1<<CS12);
+	CLKPR = (CLKPR) | (1 << CLKPS0); 
+	for(int i = 0; i<10000; i++){
+		if(TCNT1>=0x88B8){
+			LCDDR3 = 1;
+		} else{
+			LCDDR3 = 0;
+			LCDDR1 = 1;
+		}
+	}
+	
+	
+}
+
 int main(void)
 {	
 	LCD_Init();
-	
-	/*writeChar('9',0);
-	writeChar('6',1);
-	writeChar('6',2);
-	writeChar('6',3);
-	writeChar('6',4);
+	/*writeChar('1',0);
+	writeChar('2',1);
+	writeChar('3',2);
+	writeChar('4',3);
+	writeChar('5',4);
 	writeChar('6',5);
 	writeChar('7',6);*/
+	//primes();
+	//writeLong(2345798);
+	blink();
 	
-	
-	writeLong(9999999);
 	
 	
 	
