@@ -297,7 +297,6 @@ int main(void)
 	//}
 
 	writeLong(2745798);
-	writeChar('12',0);
 	//writeChar('1',0);
 
 	
