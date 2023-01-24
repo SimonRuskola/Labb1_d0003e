@@ -32,6 +32,8 @@ volatile int deltaTime;
 int curButtonVal;
 int lastButtonVal = 1;
 
+int loopCounter = 0;
+
 
 
 void LCD_Init(void) {
@@ -50,29 +52,6 @@ void LCD_Init(void) {
     LCDCRA = (1<<LCDEN) | (1<<LCDAB) |  (0<<LCDBL);
 }
 
-
-void LCD_update(unsigned char data1 ,char data2)
-{
-	/* LCD Blanking and Low power waveform are unchanged. */
-	/* Update Display memory. */
-	LCDDR0 = data1;
-	LCDDR6 = data2;
-}
-
-void LCD_disable(void)
-{
-	/* Wait until a new frame is started. */
-	while ( !(LCDCRA & (1<<LCDIF)) )
-	;
-	/* Set LCD Blanking and clear interrupt flag */
-	/* by writing a logical one to the flag. */
-	LCDCRA = (1<<LCDEN)|(1<<LCDIF)|(1<<LCDBL);
-	/* Wait until LCD Blanking is effective. */
-	while ( !(LCDCRA & (1<<LCDIF)) )
-	;
-	/* Disable LCD */
-	LCDCRA = (0<<LCDEN);
-}
 
 void writeChar(char ch, int pos) {
 
@@ -107,7 +86,7 @@ void writeChar(char ch, int pos) {
 		LCDDR0 =  (LCDDR0&0xF0)  |        (0xF&ValueArray[i])<<0;
 		LCDDR5 =  (LCDDR5&0xF0)  |  (((0xF<<4)&ValueArray[i])>>4);
 		LCDDR10 = (LCDDR10&0xF0) |  (((0xF<<8)&ValueArray[i])>>8);
-		LCDDR15 = (LCDDR11&0xF0) | (((0xF<<12)&ValueArray[i])>>12);
+		LCDDR15 = (LCDDR15&0xF0) | (((0xF<<12)&ValueArray[i])>>12);
 		
 	} else if(pos==1){
 		LCDDR0 =     (LCDDR0&0x0F)  |       ((0xF&ValueArray[i])<<4);
@@ -189,12 +168,25 @@ bool is_prime(long i) {
 
 
 void primes(void){
-	for(long n = 2; n<1000; n++){
+	int n = 0;
+	while(true){
 		if (is_prime(n)){
 			writeLong(n);
 		}
+		n++;
 		
 	}
+}
+
+void primes2(void){
+
+	if (is_prime(loopCounter)){
+		writeLong(loopCounter);
+	}
+	loopCounter++;
+
+		
+	
 }
 
 bool Cycle(void){
@@ -213,11 +205,13 @@ bool Cycle(void){
 
 }
 
-void blink(void){
+void blinkInit(void){
 	//8 MHz system clock with a prescaling factor of 256
 	TCCR1B = (1<<CS12); 
 	CLKPR  = CLKPR  | (1 << CLKPS0);
+}
 
+void blink(void){
 	while(true){
 		while (Cycle())
 		{LCDDR3 = !LCDDR3;}	
@@ -226,31 +220,54 @@ void blink(void){
 	
 }
 
+void blink2(void){
+	//8 MHz system clock with a prescaling factor of 256
+	TCCR1B = (1<<CS12); 
+	CLKPR  = CLKPR  | (1 << CLKPS0);
+
+	
+	while (Cycle())
+	{LCDDR3 = !LCDDR3;}	
+	
+}
+
 bool pressed(void){
 	curButtonVal = (PINB>>7);
 	if(lastButtonVal != curButtonVal){
+		lastButtonVal = curButtonVal;
 		return true;
 	}
+
 	return false;
 
-	lastButtonVal = curButtonVal;
+	
+}
+
+void buttonInit(void){
+	PORTB = PORTB | (1 << 7);
 }
 
 void button(void){
-	PORTB = PORTB | (1<<7);
+	PORTB = PORTB | (1 << 7);
 
-	DDRB = DDRB | (1 << 7);
-    
-	
 	while (true)
 	{
 		if(pressed()){
-			LCDDR3 = !LCDDR3;
+			LCDDR18 = !LCDDR18;
 		}
 	}
 	
 
 }
+
+void button2(void){
+	if(pressed()){
+		LCDDR18 = !LCDDR18;
+	}
+	
+
+}
+
 
 
 
@@ -259,6 +276,8 @@ void button(void){
 int main(void)
 {	
 	LCD_Init();
+	blinkInit();
+	buttonInit();
 	/*writeChar('1',0);
 	writeChar('2',1);
 	writeChar('3',2);
@@ -266,10 +285,20 @@ int main(void)
 	writeChar('5',4);
 	writeChar('6',5);
 	writeChar('7',6);*/
-	//primes();
 	//writeLong(2345798);
+	//primes();
 	//blink();
-	button();
+	//button();
+
+	//while(true){
+	//primes2();
+	//blink2();
+	//button2();
+	//}
+
+	writeLong(2745798);
+	writeChar('12',0);
+	//writeChar('1',0);
 
 	
 	
