@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include <stdio.h>
+
 #define BlankValue   0x0000
 #define ZeroValue   0x1551 //0001010101010001 0x1 0x5 0x5 0x1 = 0x1551
 #define OneValue    0x2080 //0000100000000010 0x2 0x0 0x8 0x0 = 0x2080 
@@ -23,6 +25,12 @@
 #define NineValue   0x0b51 //0001010110110000 0x0 0xb 0x5 0x1 = 0x0b51 
 #define ValueArray (int[]){ZeroValue,OneValue,TwoValue,ThreeValue,FourValue,FiveValue,SixValue,SevenValue,EightValue,NineValue,BlankValue}
 
+#define cycleValue 15625
+int lastTime;
+volatile int deltaTime;
+
+int curButtonVal;
+int lastButtonVal = 1;
 
 
 
@@ -189,20 +197,64 @@ void primes(void){
 	}
 }
 
+bool Cycle(void){
+	
+	// difrence in time since last check
+	deltaTime = TCNT1 - lastTime;
+
+	// if enough time has passed return true else false
+	if(deltaTime > cycleValue){
+		lastTime = TCNT1;
+		return true;
+	}
+	
+	return false;
+	
+
+}
+
 void blink(void){
-	TCCR1B = (1<<CS12);
-	CLKPR = (CLKPR) | (1 << CLKPS0); 
-	for(int i = 0; i<10000; i++){
-		if(TCNT1>=0x88B8){
-			LCDDR3 = 1;
-		} else{
-			LCDDR3 = 0;
-			LCDDR1 = 1;
-		}
+	//8 MHz system clock with a prescaling factor of 256
+	TCCR1B = (1<<CS12); 
+	CLKPR  = CLKPR  | (1 << CLKPS0);
+
+	while(true){
+		while (Cycle())
+		{LCDDR3 = !LCDDR3;}	
 	}
 	
 	
 }
+
+bool pressed(void){
+	curButtonVal = (PINB>>7);
+	if(lastButtonVal != curButtonVal){
+		return true;
+	}
+	return false;
+
+	lastButtonVal = curButtonVal;
+}
+
+void button(void){
+	PORTB = PORTB | (1<<7);
+
+	DDRB = DDRB | (1 << 7);
+    
+	
+	while (true)
+	{
+		if(pressed()){
+			LCDDR3 = !LCDDR3;
+		}
+	}
+	
+
+}
+
+
+
+
 
 int main(void)
 {	
@@ -216,7 +268,9 @@ int main(void)
 	writeChar('7',6);*/
 	//primes();
 	//writeLong(2345798);
-	blink();
+	//blink();
+	button();
+
 	
 	
 	
