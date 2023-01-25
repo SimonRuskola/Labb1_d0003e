@@ -193,6 +193,11 @@ bool Cycle(void){
 	
 	// difrence in time since last check
 	deltaTime = TCNT1 - lastTime;
+	
+	if(deltaTime < 0){
+		deltaTime = TCNT1;
+	}
+	
 
 	// if enough time has passed return true else false
 	if(deltaTime > cycleValue){
@@ -296,7 +301,7 @@ int main(void)
 	//button2();
 	//}
 
-	writeLong(2745798);
+	//writeLong(2745798);
 	//writeChar('1',0);
 
 	
