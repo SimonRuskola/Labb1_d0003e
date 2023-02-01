@@ -32,7 +32,7 @@ volatile int deltaTime;
 int curButtonVal;
 int lastButtonVal = 1;
 
-int loopCounter = 0;
+int loopCounter = 25000;
 
 
 
